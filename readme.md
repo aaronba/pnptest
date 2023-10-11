@@ -1,4 +1,4 @@
-#Powershell that downloads files from Sharepoint online to an Azure mounted file container
+# Powershell that downloads files from Sharepoint online to an Azure mounted file container
 
 This powersheill script will download files from Sharepoint online to an Azure mounted file container. The script will download all files from the root of the Sharepoint site and all files from all subfolders. It can be run as a scheduled task to keep up to date as needed. The script will only download files that have been added since the last run.
 
