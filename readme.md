@@ -5,7 +5,9 @@ This powersheill script will download files from Sharepoint online to an Azure m
 Written for Powershell 7.x that is supported in Windows, Linux and MacOS.
 
 Need to install on host the Powershell Cmdlet to access Sharepoint online:
-```Install-Module PnP.PowerShell -Scope CurrentUser
+```powershell
+Install-Module PnP.PowerShell -Scope CurrentUser
+```
 
 Reference: https://pnp.github.io/powershell/articles/installation.html
 
