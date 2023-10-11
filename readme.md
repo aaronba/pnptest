@@ -10,6 +10,8 @@ Install-Module PnP.PowerShell -Scope CurrentUser
 ```
 
 Reference: https://pnp.github.io/powershell/articles/installation.html
+``
+
 
 ## Prerequisites
 - Azure file container mounted on the machine running the script. A subfolder called "script" needs to exist as a file folder
