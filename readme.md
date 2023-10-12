@@ -11,17 +11,32 @@ Install-Module PnP.PowerShell -Scope CurrentUser
 
 Reference: https://pnp.github.io/powershell/articles/installation.html
 
+
 ## Prerequisites
 - Azure file container mounted on the machine running the script. A subfolder called "script" needs to exist as a file folder
 - Sharepoint online site with files to download
 - Define the credentials of the Sharepoint online site in the script
 - Register the app in Azure AD and give
 
+
+## How to install Powershell 7.x on Linux
+- https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux?view=powershell-7.1
+
+
+
+Once Powershell 7.x is installed. Install on host the Azure Powershell Cmdlet to access resources online:
+```powershell
+Install-Module -Name Az -Repository PSGallery -Force
+```
+
+connect-azaccount -usedeviceauthentication
+
+
+
 ## How to use
 - Download the script
 - Define the credentials of the Sharepoint online site in the script
 - Register the app in Azure AD and give the app the following permissions:
-
 
 ## How to run
 - Run the script from a powershell prompt
