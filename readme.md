@@ -14,7 +14,14 @@ Reference: https://pnp.github.io/powershell/articles/installation.html
 
 ## Prerequisites
 - Azure file container mounted on the machine running the script. A subfolder called "script" needs to exist as a file folder
-- Sharepoint online site with files to download
+
+
+# Grant user-assigned identity access to the key vault
+az keyvault set-policy \
+    --name mykeyvault \
+    --resource-group myResourceGroup \
+    --object-id $SP_ID \
+    --secret-permissions get- Sharepoint online site with files to download
 - Define the credentials of the Sharepoint online site in the script
 - Register the app in Azure AD and give
 
@@ -43,15 +50,63 @@ tar -xvf downloadazcopy-v10-linux
 mv azcopy_linux_amd64_10.21.0/azcopy .
 ```
 
-Create a Keyvault in Azure and store the following secrets if doesn't exist:
+#Create a Keyvault in Azure and store the following secrets if doesn't exist:
+```bash
+resourceGroupName="SharepointPS"
+managedIdentityName="myACIId"
+az identity create \
+  --resource-group $resourceGroupName \
+  --name $managedIdentityName
+```
+
+# Get Service Principal Id for Managed Identity
+```bash
+# Get service principal ID of the user-assigned identity
+SP_ID=$(az identity show \
+  --resource-group $resourceGroupName \
+  --name $managedIdentityName \
+  --query principalId --output tsv)
+
+# Get resource ID of the user-assigned identity
+RESOURCE_ID=$(az identity show \
+  --resource-group $resourceGroupName \
+  --name $managedIdentityName \
+  --query id --output tsv)
+```bash
+
+echo $RESOURCE_ID
+/subscriptions/45281fc4-c2b7-4b8c-b6d8-38887ee8a127/resourcegroups/SharepointPS/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myACIId
+
+echo $SP_ID
+d1823200-5af1-4396-97bb-9e73c0882a8c
+
+# Grant user-assigned identity access to the key vault
+az keyvault set-policy \
+    --name SharepointPS-kv \
+    --resource-group $resourceGroupName \
+    --object-id $SP_ID \
+    --secret-permissions "get,list"
+
+
+az container create \
+  --resource-group myResourceGroup \
+  --name mycontainer \
+  --image mcr.microsoft.com/azure-cli \
+  --assign-identity $RESOURCE_ID \
+  --command-line "tail -f /dev/null"
+
+
 
 Will be used to store the following parameters:
 - ClientId 
 - CertificateBase64Encoded
-
+CLI Code
 # Connect to Azure and in order to create a Keyvault. Also connect on host to allow for keyvault access and file transfer to Azure file container
 
 Other authentication models are optional. For example, you can use a service principal or managed identity. For more information, see [Authenticate with the Azure PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/azure/authenticate-azureps?view=azps-5.4.0).
+
+# Create a User-Assigned Managed Identity
+CLI Code
 
 
 ```powershell
@@ -63,6 +118,13 @@ New-AzKeyVault -Name "SharepointPS-kv" -ResourceGroupName "SharepointPS" -Locati
 Set-AzKeyVaultAccessPolicy -VaultName "SharepointPS-kv" -UserPrincipalName "mdeleo@mdeleo.onmicrosoft.com" -PermissionsToSecrets get,set,delete,list
 ```
 
+# Create a Managed Identity for the Azure Container Instance
+See: https://docs.microsoft.com/en-us/azure/container-instances/container-instances-managed-identity
+
+```powershell
+
+```powershell
+
 # Store the following secrets in the Keyvault
 - ClientId
 - CertificateBase64Encoded
@@ -71,8 +133,14 @@ Set-AzKeyVaultAccessPolicy -VaultName "SharepointPS-kv" -UserPrincipalName "mdel
 $secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -SecretValue $secretvalue
 
+$secret = Get-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -AsPlainText
+$secret
+
 $secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -SecretValue $secretvalue
+
+$secret = Get-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -AsPlainText
+$secret
 ```
 
 # Storage Account creation and configuration
@@ -124,8 +192,11 @@ New-AzStorageDirectory `
 $resourceGroupName = "SharepointPS"
 New-AzResourceGroup -Name  $resourceGroupName -Location "EastUS"
 
-# Cli 
-containerName="USPS-PSContainer"
+#CLI to create a Linux Container
+# Resource ID for USer Identity
+RESOURCE_ID="/subscriptions/45281fc4-c2b7-4b8c-b6d8-38887ee8a127/resourcegroups/SharepointPS/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myACIId"
+
+containerName="usps-pscontainer"
 resourceGroupName="SharepointPS"
 az container create --resource-group $resourceGroupName --name $containerName \
  --image mcr.microsoft.com/azure-powershell \
@@ -134,15 +205,25 @@ az container create --resource-group $resourceGroupName --name $containerName \
  --azure-file-volume-account-key "8WsTm2PxnkJaGfZha6He7UNZP84axvvRoqz1/vKXwWUI10NwFxaX9b9alkg8Qswu2YOYBAYHy94O+AStxQf9/Q==" \
  --azure-file-volume-share-name archivefileshare \
  --azure-file-volume-mount-path /data \
+ --assign-identity $RESOURCE_ID \
  --command-line "tail -f /dev/null"
 ```
 
 Az cli:
-containerName="test"
+containerName="usps-pscontainer"
 resourceGroupName="SharepointPS"
 
-CLI to create a Linux Conteinter
-az container create --resource-group $resourceGroupName --name $containerName --image mcr.microsoft.com/azure-powershell  --ports 80 --restart-policy Never --command-line "tail -f /dev/null"
+#CLI to create a Linux Container
+az container create --resource-group $resourceGroupName --name $containerName --image mcr.microsoft.com/azure-powershell  --ports 80 --restart-policy Never --command-line "tail -f /dev/null" \
+--assign-identity $RESOURCE_ID 
+
+echo $RESOURCE_ID
+RESOURCE_ID="/subscriptions/45281fc4-c2b7-4b8c-b6d8-38887ee8a127/resourcegroups/SharepointPS/providers/Microsoft.ManagedIdentity/userAssignedIdentities/"
+
+az container show \
+  --resource-group $resourceGroupName \
+  --name $containerName
+
 
 In the Azure Portal:
 - Container Instances
@@ -151,12 +232,19 @@ In the Azure Portal:
 - Connect
 - Select Bash
 
+bash: az login --identity -u
+clientId="488bbfd3-9e3d-4764-ab09-f267fc047866"
+
+Connect-AzAccount -Identity
+
+
 ```bash
 apt update
 apt upgrade
-apt install wget
 pwsh
-Install-Module -Name Az -Repository PSGallery -Force
-connect-azaccount -usedeviceauthentication
+Install-Module PnP.PowerShell -Scope CurrentUser
+InstalGl-Module -Name Az -Repository PSGallery -Force
+Connect-AzAccount -Identity
+GetSPOFile5.ps1
 
 ```
