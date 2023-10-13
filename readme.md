@@ -44,8 +44,7 @@ wget https://aka.ms/downloadazcopy-v10-linux
 tar -xvf downloadazcopy-v10-linux
 # Move azcopy to current folder
 mv azcopy_linux_amd64_10.21.0/azcopy .
-
-```'
+```
 
 Create a Keyvault in Azure and store the following secrets if doesn't exist:
 
@@ -54,35 +53,38 @@ Will be used to store the following parameters:
 ClientId 
 CertificateBase64Encoded
 
+# Connect to Azure and in order to create a Keyvault. Also connect on host to allow for keyvault access and file transfer to Azure file container
 
+Other authentication models are optional. For example, you can use a service principal or managed identity. For more information, see [Authenticate with the Azure PowerShell cmdlets](https://docs.microsoft.com/en-us/powershell/azure/authenticate-azureps?view=azps-5.4.0).
+
+
+```powershell
 connect-azaccount -usedeviceauthentication
 New-AzResourceGroup -Name SharepointPS -Location EastUS
 New-AzKeyVault -Name "SharepointPS-kv" -ResourceGroupName "SharepointPS" -Location "EastUS"
 
 Set-AzKeyVaultAccessPolicy -VaultName "SharepointPS-kv" -UserPrincipalName "mdeleo@mdeleo.onmicrosoft.com" -PermissionsToSecrets get,set,delete,list
 
-
-``$secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
+# Store the following secrets in the Keyvault
+- ClientId
+- CertificateBase64Encoded
+```powershell
+$secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
 
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -SecretValue $secretvalue
-$secret = " "
-$secret = Get-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -AsPlainText
-$secret
-
 
 $secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
 
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -SecretValue $secretvalue
-$secret = " "
-$secret = Get-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -AsPlainText
-$secret
-``
+```
 
 # Storage Account creation and configuration
 
+```powershell
 $resourceGroupName = "SharepointPS"
 $storageAccountName = "sharepointstoragearc"
 $region = "EastUS"
+$shareName = "archivefileshare"
 
 $storageAcct = New-AzStorageAccount `
     -ResourceGroupName $resourceGroupName `
@@ -91,40 +93,22 @@ $storageAcct = New-AzStorageAccount `
     -Kind StorageV2 `
     -SkuName Standard_LRS `
     -EnableLargeFileShare
-#Get-AzStorageAccount -ResourceGroupName "RG01" -Name "mystorageaccount"
-$storageAcct = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $StorageAccountName
-
-$shareName = "archivefileshare"
 
 New-AzRmStorageShare `
     -StorageAccount $storageAcct `
     -Name $shareName `
     -EnabledProtocol SMB `
     -QuotaGiB 20024 | Out-Null
+```
 
-# Create a Directory
+# Create a Top Level Directory
+```powershell
+$topLevelDir = "data"
 New-AzStorageDirectory `
    -Context $storageAcct.Context `
    -ShareName $shareName `
-   -Path "data"
-
-
-
-Create a file share in Azure storage account:
-
-# this expression will put the current date and time into a new file on your scratch drive
-cd "/data"
-#Get-Date | Out-File -FilePath "SampleUpload.txt" -Force
-
-# this expression will upload that newly created file to your Azure file share
-Set-AzStorageFileContent `
-   -Context $storageAcct.Context `
-   -ShareName $shareName `
-   -Source "/data/sites/aaronbadev/SPOFiles/AaronTestAzure/DownloadAndWriteToBlob.sln" `
-   -Path "/data/sites/aaronbadev/SPOFiles/AaronTestAzure/DownloadAndWriteToBlob.sln"
-
-
-
+   -Path $topLevelDir | Out-Null
+```
 
 ## How to use
 - Download the script
