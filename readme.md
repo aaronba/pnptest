@@ -116,3 +116,30 @@ New-AzStorageDirectory `
 - Run the script from a powershell prompt
 - The script will download all files from the root of the Sharepoint site and all files from all subfolders
 
+## Deploying to an Azure Container Instance
+
+```powershell
+
+#Create resource group
+$resourceGroupName = "SharepointPS"
+New-AzResourceGroup -Name  $resourceGroupName -Location "EastUS"
+
+# Cli 
+$containerName = "msusps-aci-spocopy-aci"
+az container create --resource-group $resourceGroupName --name $containerName ```
+ --image m365pnp/powershell ``
+ --restart-policy Never ``
+ --azure-file-volume-account-name msuspsfilemover ``
+ --azure-file-volume-account-key <Storage Account Key> ``
+ --azure-file-volume-share-name aci-share ``
+ --azure-file-volume-mount-path /data ``
+ --command-line "tail -f /dev/null"
+```
+
+Powershell Create Container
+
+New-AzContainerGroup ``
+-ResourceGroupName  $resourceGroupName ``
+-Name $containerName ``
+-Image mcr.microsoft.com/windows/servercore/iis:nanoserver -OsType Windows -DnsNameLabel aci-demo-win
+
