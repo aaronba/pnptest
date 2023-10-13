@@ -125,21 +125,38 @@ $resourceGroupName = "SharepointPS"
 New-AzResourceGroup -Name  $resourceGroupName -Location "EastUS"
 
 # Cli 
-$containerName = "msusps-aci-spocopy-aci"
-az container create --resource-group $resourceGroupName --name $containerName ```
- --image m365pnp/powershell ``
- --restart-policy Never ``
- --azure-file-volume-account-name msuspsfilemover ``
- --azure-file-volume-account-key <Storage Account Key> ``
- --azure-file-volume-share-name aci-share ``
- --azure-file-volume-mount-path /data ``
+containerName="USPS-PSContainer"
+resourceGroupName="SharepointPS"
+az container create --resource-group $resourceGroupName --name $containerName \
+ --image mcr.microsoft.com/azure-powershell \
+ --restart-policy Never \
+ --azure-file-volume-account-name sharepointstoragearc \
+ --azure-file-volume-account-key "8WsTm2PxnkJaGfZha6He7UNZP84axvvRoqz1/vKXwWUI10NwFxaX9b9alkg8Qswu2YOYBAYHy94O+AStxQf9/Q==" \
+ --azure-file-volume-share-name archivefileshare \
+ --azure-file-volume-mount-path /data \
  --command-line "tail -f /dev/null"
 ```
 
-Powershell Create Container
+Az cli:
+containerName="test"
+resourceGroupName="SharepointPS"
 
-New-AzContainerGroup ``
--ResourceGroupName  $resourceGroupName ``
--Name $containerName ``
--Image mcr.microsoft.com/windows/servercore/iis:nanoserver -OsType Windows -DnsNameLabel aci-demo-win
+CLI to create a Linux Conteinter
+az container create --resource-group $resourceGroupName --name $containerName --image mcr.microsoft.com/azure-powershell  --ports 80 --restart-policy Never --command-line "tail -f /dev/null"
 
+In the Azure Portal:
+- Container Instances
+- Select the container
+- Select Containers
+- Connect
+- Select Bash
+
+```bash
+apt update
+apt upgrade
+apt install wget
+pwsh
+Install-Module -Name Az -Repository PSGallery -Force
+connect-azaccount -usedeviceauthentication
+
+```
