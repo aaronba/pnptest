@@ -43,7 +43,7 @@ az identity create \
   --resource-group $resourceGroupName \
   --name $managedIdentityName
 ```
-=======
+
 #Create a Keyvault in Azure and store the following secrets if doesn't exist:
 ```bash
 resourceGroupName="SharepointPS"
@@ -68,12 +68,6 @@ RESOURCE_ID=$(az identity show \
   --query id --output tsv)
 ```bash
 
-
-echo $RESOURCE_ID
-/subscriptions/45281fc4-c2b7-4b8c-b6d8-38887ee8a127/resourcegroups/SharepointPS/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myACIId
-
-echo $SP_ID
-d1823200-5af1-4396-97bb-9e73c0882a8c
 
 # Grant user-assigned identity access to the key vault
 az keyvault set-policy \
@@ -115,13 +109,11 @@ az keyvault set-policy \
 ```powershell
 $secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -SecretValue $secretvalue
-
 $secret = Get-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -AsPlainText
 $secret
 
 $secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -SecretValue $secretvalue
-
 $secret = Get-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -AsPlainText
 $secret
 ```
@@ -190,22 +182,11 @@ az container create --resource-group $resourceGroupName --name $containerName \
  --azure-file-volume-mount-path /data \
  --assign-identity $RESOURCE_ID \
  --command-line "tail -f /dev/null"
-```
-
-Az cli:
-containerName="usps-pscontainer"
-resourceGroupName="SharepointPS"
-
-#CLI to create a Linux Container
-az container create --resource-group $resourceGroupName --name $containerName --image mcr.microsoft.com/azure-powershell  --ports 80 --restart-policy Never --command-line "tail -f /dev/null" \
---assign-identity $RESOURCE_ID 
-
-echo $RESOURCE_ID
-RESOURCE_ID="/subscriptions/45281fc4-c2b7-4b8c-b6d8-38887ee8a127/resourcegroups/SharepointPS/providers/Microsoft.ManagedIdentity/userAssignedIdentities/"
 
 az container show \
   --resource-group $resourceGroupName \
   --name $containerName
+```
 
 In the Azure Portal:
 - Container Instances
@@ -213,13 +194,6 @@ In the Azure Portal:
 - Select Containers
 - Connect
 - Select Bash
-
-
-```bash 
-bash: az login --identity -u
-clientId="488bbfd3-9e3d-4764-ab09-f267fc047866"
-
-Connect-AzAccount -Identity
 
 ```bash
 apt update
