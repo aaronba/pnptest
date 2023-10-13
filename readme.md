@@ -46,9 +46,8 @@ mv azcopy_linux_amd64_10.21.0/azcopy .
 Create a Keyvault in Azure and store the following secrets if doesn't exist:
 
 Will be used to store the following parameters:
-
-ClientId 
-CertificateBase64Encoded
+- ClientId 
+- CertificateBase64Encoded
 
 # Connect to Azure and in order to create a Keyvault. Also connect on host to allow for keyvault access and file transfer to Azure file container
 
@@ -62,17 +61,17 @@ New-AzResourceGroup -Name SharepointPS -Location EastUS
 New-AzKeyVault -Name "SharepointPS-kv" -ResourceGroupName "SharepointPS" -Location "EastUS"
 
 Set-AzKeyVaultAccessPolicy -VaultName "SharepointPS-kv" -UserPrincipalName "mdeleo@mdeleo.onmicrosoft.com" -PermissionsToSecrets get,set,delete,list
+```
 
 # Store the following secrets in the Keyvault
 - ClientId
 - CertificateBase64Encoded
+
 ```powershell
 $secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
-
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -SecretValue $secretvalue
 
 $secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
-
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -SecretValue $secretvalue
 ```
 
