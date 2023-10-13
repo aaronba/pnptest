@@ -17,15 +17,11 @@ Reference: https://pnp.github.io/powershell/articles/installation.html
 - Azure file container mounted on the machine running the script. A subfolder called "script" needs to exist as a file folder
 - Sharepoint online site with files to download
 - Define the credentials of the Sharepoint online site in the script
-- Register the app in Azure AD and give
-
-- create a local directory called "/data/" for temporary storage of files and structure if needed
 
 
 ## How to install Powershell 7.x on Linux
 - Not needed if choosing the Powershell container, already installed vanilla 7.x
 - https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux?view=powershell-7.1
-
 
 
 Once Powershell 7.x is installed. Install on host the Azure Powershell Cmdlet to access resources online:
@@ -40,6 +36,15 @@ See: https://docs.microsoft.com/en-us/azure/container-instances/container-instan
 CLI CODE for Cloudshell
 
 #Create a User Identity in Azure
+```bash
+resourceGroupName="SharepointPS"
+managedIdentityName="myACIId"
+az identity create \
+  --resource-group $resourceGroupName \
+  --name $managedIdentityName
+```
+=======
+#Create a Keyvault in Azure and store the following secrets if doesn't exist:
 ```bash
 resourceGroupName="SharepointPS"
 managedIdentityName="myACIId"
@@ -64,6 +69,12 @@ RESOURCE_ID=$(az identity show \
 ```bash
 
 
+echo $RESOURCE_ID
+/subscriptions/45281fc4-c2b7-4b8c-b6d8-38887ee8a127/resourcegroups/SharepointPS/providers/Microsoft.ManagedIdentity/userAssignedIdentities/myACIId
+
+echo $SP_ID
+d1823200-5af1-4396-97bb-9e73c0882a8c
+
 # Grant user-assigned identity access to the key vault
 az keyvault set-policy \
     --name SharepointPS-kv \
@@ -80,21 +91,21 @@ az container create \
   --command-line "tail -f /dev/null"
 
 
+# Get resource ID of the user-assigned identity
+RESOURCE_ID=$(az identity show \
+  --resource-group $resourceGroupName \
+  --name $managedIdentityName \
+  --query id --output tsv)
+```bash
 
-# Create a Keyvault and store the following secrets in the Keyvault
-Will be used to store the following parameters as a user <user>:
-- ClientId 
-- CertificateBase64Encoded
-CLI Code
-# Connect to Azure and in order to create a Keyvault. Also connect on host to allow for keyvault access and file transfer to Azure file container
 
+# Grant user-assigned identity access to the key vault
+az keyvault set-policy \
+    --name SharepointPS-kv \
+    --resource-group $resourceGroupName \
+    --object-id $SP_ID \
+    --secret-permissions "get"
 
-```powershell
-# If using a remote host with a browser, use the following command to connect to Azure
-New-AzResourceGroup -Name SharepointPS -Location EastUS
-
-Set-AzKeyVaultAccessPolicy -VaultName "SharepointPS-kv" -UserPrincipalName "<user>" -PermissionsToSecrets get,set,delete,list
-```
 
 
 # Store the following secrets in the Keyvault
@@ -185,10 +196,16 @@ Az cli:
 containerName="usps-pscontainer"
 resourceGroupName="SharepointPS"
 
+#CLI to create a Linux Container
+az container create --resource-group $resourceGroupName --name $containerName --image mcr.microsoft.com/azure-powershell  --ports 80 --restart-policy Never --command-line "tail -f /dev/null" \
+--assign-identity $RESOURCE_ID 
+
+echo $RESOURCE_ID
+RESOURCE_ID="/subscriptions/45281fc4-c2b7-4b8c-b6d8-38887ee8a127/resourcegroups/SharepointPS/providers/Microsoft.ManagedIdentity/userAssignedIdentities/"
+
 az container show \
   --resource-group $resourceGroupName \
   --name $containerName
-
 
 In the Azure Portal:
 - Container Instances
@@ -199,6 +216,12 @@ In the Azure Portal:
 
 
 ```bash 
+bash: az login --identity -u
+clientId="488bbfd3-9e3d-4764-ab09-f267fc047866"
+
+Connect-AzAccount -Identity
+
+```bash
 apt update
 apt upgrade
 pwsh
@@ -206,5 +229,4 @@ Install-Module PnP.PowerShell -Scope CurrentUser
 InstalGl-Module -Name Az -Repository PSGallery -Force
 Connect-AzAccount -Identity
 GetSPOFile5.ps1
-
 ```
