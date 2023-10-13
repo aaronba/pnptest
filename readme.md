@@ -31,9 +31,6 @@ Once Powershell 7.x is installed. Install on host the Azure Powershell Cmdlet to
 Install-Module -Name Az -Repository PSGallery -Force
 ```
 
-TBD:
-connect-azaccount -usedeviceauthentication
-
 Download azcopy to upload files to files from Linux to Azure file container:
 
 - https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10
@@ -59,6 +56,7 @@ Other authentication models are optional. For example, you can use a service pri
 
 
 ```powershell
+# If using a remote host with a browser, use the following command to connect to Azure
 connect-azaccount -usedeviceauthentication
 New-AzResourceGroup -Name SharepointPS -Location EastUS
 New-AzKeyVault -Name "SharepointPS-kv" -ResourceGroupName "SharepointPS" -Location "EastUS"
