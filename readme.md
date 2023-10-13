@@ -44,8 +44,7 @@ wget https://aka.ms/downloadazcopy-v10-linux
 tar -xvf downloadazcopy-v10-linux
 # Move azcopy to current folder
 mv azcopy_linux_amd64_10.21.0/azcopy .
-
-```'
+```
 
 Create a Keyvault in Azure and store the following secrets if doesn't exist:
 
@@ -62,7 +61,8 @@ New-AzKeyVault -Name "SharepointPS-kv" -ResourceGroupName "SharepointPS" -Locati
 Set-AzKeyVaultAccessPolicy -VaultName "SharepointPS-kv" -UserPrincipalName "mdeleo@mdeleo.onmicrosoft.com" -PermissionsToSecrets get,set,delete,list
 
 
-``$secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
+```powershell
+$secretvalue = ConvertTo-SecureString "<secret>" -AsPlainText -Force
 
 $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "ClientID" -SecretValue $secretvalue
 $secret = " "
@@ -76,7 +76,7 @@ $secret = Set-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBa
 $secret = " "
 $secret = Get-AzKeyVaultSecret -VaultName "SharepointPS-kv" -Name "CertificateBase64Encoded" -AsPlainText
 $secret
-``
+```
 
 # Storage Account creation and configuration
 
