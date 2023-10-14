@@ -212,5 +212,5 @@ cat >>/etc/cron.d/hello-cron <<EOF
 * * * * * root echo "Hello world" >> /var/log/cron.log 2>&1
 EOF
 chmod 0644 /etc/cron.d/hello-cron
-serive cron start
+service cron start
 ```
