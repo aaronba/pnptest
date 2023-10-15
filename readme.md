@@ -54,6 +54,7 @@ az identity create \
 ```
 
 # Get Service Principal Id for Managed Identity
+
 ```bash
 # Get service principal ID of the user-assigned identity
 SP_ID=$(az identity show \
@@ -66,8 +67,6 @@ RESOURCE_ID=$(az identity show \
   --resource-group $resourceGroupName \
   --name $managedIdentityName \
   --query id --output tsv)
-```bash
-
 
 # Grant user-assigned identity access to the key vault
 az keyvault set-policy \
@@ -76,7 +75,6 @@ az keyvault set-policy \
     --object-id $SP_ID \
     --secret-permissions "get,list"
 
-
 az container create \
   --resource-group myResourceGroup \
   --name mycontainer \
@@ -84,13 +82,11 @@ az container create \
   --assign-identity $RESOURCE_ID \
   --command-line "tail -f /dev/null"
 
-
 # Get resource ID of the user-assigned identity
 RESOURCE_ID=$(az identity show \
   --resource-group $resourceGroupName \
   --name $managedIdentityName \
   --query id --output tsv)
-```bash
 
 
 # Grant user-assigned identity access to the key vault
@@ -99,7 +95,7 @@ az keyvault set-policy \
     --resource-group $resourceGroupName \
     --object-id $SP_ID \
     --secret-permissions "get"
-
+```
 
 
 # Store the following secrets in the Keyvault
