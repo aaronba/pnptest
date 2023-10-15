@@ -201,7 +201,7 @@ Connect-AzAccount -Identity
 GetSPOFile5.ps1
 ```
 
-Optional recurring run in the container:
+Optional recurring run in the container. Note that this example is only for testing and will run every minute:
 ```bash
 apt install cron
 cat >>/etc/cron.d/hello-cron <<EOF
